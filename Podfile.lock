@@ -1,0 +1,13 @@
+PODS:
+  - Masonry (0.6.4)
+  - OpenCV (3.0.0)
+
+DEPENDENCIES:
+  - Masonry
+  - OpenCV (~> 3.0.0)
+
+SPEC CHECKSUMS:
+  Masonry: 281802d04d787ea2973179ee8bcb50500579ede2
+  OpenCV: be07c02f0d8f125f1d40d261e66a66cb66ece3b3
+
+COCOAPODS: 0.38.2
