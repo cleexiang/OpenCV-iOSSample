@@ -51,19 +51,19 @@ using namespace cv;
             Vec4b bgr1 = base.at<Vec4b>(i, j);
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mixedMat.at<Vec4b>(i, j);
-            if (bgr1[0] > bgr2[0]) {
+            if (bgr1[0] < bgr2[0]) {
                 bgr3[0] = bgr1[0];
             } else {
                 bgr3[0] = bgr2[0];
             }
 
-            if (bgr1[1] > bgr2[1]) {
+            if (bgr1[1] < bgr2[1]) {
                 bgr3[1] = bgr1[1];
             } else {
                 bgr3[1] = bgr2[1];
             }
 
-            if (bgr1[2] > bgr2[2]) {
+            if (bgr1[2] < bgr2[2]) {
                 bgr3[2] = bgr1[2];
             } else {
                 bgr3[2] = bgr2[2];
@@ -73,7 +73,6 @@ using namespace cv;
         }
     }
 
-    UIImage *fuck = [UIImage UIImageFromCVMat:mixedMat];
     return mixedMat;
 }
 
