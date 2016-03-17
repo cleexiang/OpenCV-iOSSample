@@ -38,10 +38,11 @@ using namespace cv;
     orgImg = [UIImage imageNamed:@"blend.jpg"];
     Mat blendMat = [UIImage cvMatFromUIImage:orgImg];
 
-    Mat mixMat = [self multiplyWithBaseImage:baseMat blend:blendMat];
+    Mat mixMat = [self colorBurnWithBaseImage:baseMat blend:blendMat];
     self.mixedImageView.image = [UIImage UIImageFromCVMat:mixMat];
 }
 
+//变暗
 - (Mat)darkenWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix = Mat(base.rows, base.cols, CV_8UC4);
@@ -76,6 +77,7 @@ using namespace cv;
     return mix;
 }
 
+//正片叠底
 - (Mat)multiplyWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix = Mat(base.rows, base.cols, CV_8UC4);
@@ -89,6 +91,51 @@ using namespace cv;
             bgr3[2] = bgr1[2]*bgr2[2]/255;
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//颜色加深
+- (Mat)colorBurnWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr2[0] == 0)
+            {
+                bgr3[0] = 0;
+            }
+            else
+            {
+                bgr3[0] = MAX(0, bgr1[0] - (255 - bgr1[0]) * (255 - bgr2[0]) / bgr2[0]);
+            }
+
+            if (bgr2[1] == 0)
+            {
+                bgr3[1] = 0;
+            }
+            else
+            {
+                bgr3[1] = MAX(0, bgr1[1] - (255 - bgr1[1]) * (255 - bgr2[1]) / bgr2[1]);
+            }
+
+            if (bgr2[2] == 0)
+            {
+                bgr3[2] = 0;
+            }
+            else
+            {
+                bgr3[2] = MAX(0, bgr1[2] - (255 - bgr1[2]) * (255 - bgr2[2]) / bgr2[2]);
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+
         }
     }
     return mix;
