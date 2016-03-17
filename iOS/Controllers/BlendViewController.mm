@@ -38,7 +38,7 @@ using namespace cv;
     orgImg = [UIImage imageNamed:@"blend.jpg"];
     Mat blendMat = [UIImage cvMatFromUIImage:orgImg];
 
-    Mat mixMat = [self colorBurnWithBaseImage:baseMat blend:blendMat];
+    Mat mixMat = [self LinearDodgeWithBaseImage:baseMat blend:blendMat];
     self.mixedImageView.image = [UIImage UIImageFromCVMat:mixMat];
 }
 
@@ -136,6 +136,137 @@ using namespace cv;
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
 
+        }
+    }
+    return mix;
+}
+
+//线性加深
+- (Mat)linearBurnWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = MAX(0, bgr1[0] + bgr2[0] - 255);
+
+            bgr3[1] = MAX(0, bgr1[1] + bgr2[1] - 255);
+
+            bgr3[2] = MAX(0, bgr1[2] + bgr2[2] - 255);
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+            
+        }
+    }
+    return mix;
+}
+
+//变亮
+- (Mat)LightenWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = MAX(bgr1[0], bgr2[0]);
+
+            bgr3[1] = MAX(bgr1[1], bgr2[1]);
+
+            bgr3[2] = MAX(bgr1[2], bgr2[2]);
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+            
+        }
+    }
+    return mix;
+}
+
+//滤色
+- (Mat)ScreenWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = 255 - (255-bgr1[0])*(255-bgr2[0])/255;
+
+            bgr3[1] = 255 - (255-bgr1[1])*(255-bgr2[1])/255;
+
+            bgr3[2] = 255 - (255-bgr1[2])*(255-bgr2[2])/255;
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+            
+        }
+    }
+    return mix;
+}
+
+//颜色减淡
+- (Mat)ColorDodgeWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr2[0] == 255) {
+                bgr3[0] = bgr2[0];
+            } else {
+                bgr3[0] = MIN(255, bgr1[0] + bgr1[0]*bgr2[0]/(255-bgr2[0]));
+            }
+
+            if (bgr2[1] == 255) {
+                bgr3[1] = bgr2[1];
+            } else {
+                bgr3[1] = MIN(255, bgr1[1] + bgr1[1]*bgr2[1]/(255-bgr2[1]));
+            }
+
+            if (bgr2[2] == 255) {
+                bgr3[2] = bgr2[2];
+            } else {
+                bgr3[2] = MIN(255, bgr1[2] + bgr1[2]*bgr2[2]/(255-bgr2[2]));
+            }
+
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//线性减淡
+- (Mat)LinearDodgeWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = MIN(255, bgr1[0] + bgr2[0]);
+
+            bgr3[1] = MIN(255, bgr1[1] + bgr2[1]);
+
+            bgr3[2] = MIN(255, bgr1[2] + bgr2[2]);
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
         }
     }
     return mix;
