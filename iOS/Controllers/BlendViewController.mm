@@ -38,7 +38,7 @@ using namespace cv;
     orgImg = [UIImage imageNamed:@"blend.jpg"];
     Mat blendMat = [UIImage cvMatFromUIImage:orgImg];
 
-    Mat mixMat = [self LinearDodgeWithBaseImage:baseMat blend:blendMat];
+    Mat mixMat = [self SoftLightWithBaseImage:baseMat blend:blendMat];
     self.mixedImageView.image = [UIImage UIImageFromCVMat:mixMat];
 }
 
@@ -271,6 +271,252 @@ using namespace cv;
     }
     return mix;
 }
+
+//叠加
+- (Mat)OverlayWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//柔光
+- (Mat)SoftLightWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr2[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128 + (pow(bgr1[0]/255, 2))*(255-2*bgr2[0]);
+            } else {
+                bgr3[0] = bgr1[0]*(255-bgr2[0])/128 + (sqrt(bgr1[0]/255))*(2*bgr2[0]-255);
+            }
+
+            if (bgr2[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128 + (pow(bgr1[1]/255, 2))*(255-2*bgr2[1]);
+            } else {
+                bgr3[1] = bgr1[1]*(255-bgr2[1])/128 + (sqrt(bgr1[1]/255))*(2*bgr2[1]-255);
+            }
+
+            if (bgr2[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128 + (pow(bgr1[2]/255, 2))*(255-2*bgr2[2]);
+            } else {
+                bgr3[2] = bgr1[2]*(255-bgr2[2])/128 + (sqrt(bgr1[2]/255))*(2*bgr2[2]-255);
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//强光
+- (Mat)HardLightWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//亮光
+- (Mat)VividLightWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//线性光
+- (Mat)LinearLightWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//点光
+- (Mat)PinLightWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//实色混合模式
+- (Mat)HardMixWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            if (bgr1[0] <= 128) {
+                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            } else {
+                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+            }
+
+            if (bgr1[1] <= 128) {
+                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            } else {
+                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+            }
+
+            if (bgr1[2] <= 128) {
+                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            } else {
+                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+            }
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
