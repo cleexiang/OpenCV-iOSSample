@@ -38,7 +38,7 @@ using namespace cv;
     orgImg = [UIImage imageNamed:@"blend.jpg"];
     Mat blendMat = [UIImage cvMatFromUIImage:orgImg];
 
-    Mat mixMat = [self SoftLightWithBaseImage:baseMat blend:blendMat];
+    Mat mixMat = [self HardMixWithBaseImage:baseMat blend:blendMat];
     self.mixedImageView.image = [UIImage UIImageFromCVMat:mixMat];
 }
 
@@ -352,24 +352,23 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            if (bgr1[0] <= 128) {
+            if (bgr2[0] <= 128) {
                 bgr3[0] = bgr1[0]*bgr2[0]/128;
             } else {
-                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+                bgr3[0] = 255 - (255-bgr1[0])*(255-bgr2[0])/128;
             }
 
-            if (bgr1[1] <= 128) {
+            if (bgr2[1] <= 128) {
                 bgr3[1] = bgr1[1]*bgr2[1]/128;
             } else {
-                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+                bgr3[1] = 255 - (255-bgr1[1])*(255-bgr2[1])/128;
             }
 
-            if (bgr1[2] <= 128) {
+            if (bgr2[2] <= 128) {
                 bgr3[2] = bgr1[2]*bgr2[2]/128;
             } else {
-                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+                bgr3[2] = 255 - (255-bgr1[2])*(255-bgr2[2])/128;
             }
-
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
         }
@@ -388,21 +387,21 @@ using namespace cv;
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
             if (bgr1[0] <= 128) {
-                bgr3[0] = bgr1[0]*bgr2[0]/128;
+                bgr3[0] = MAX(0, bgr1[0]-(255-bgr1[0])*(255-2*bgr2[0])/2*bgr2[0]);
             } else {
-                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+                bgr3[0] = MIN(255, bgr1[0]+ bgr1[0]*(2*bgr2[0]-255)/2*(255-bgr2[0]));
             }
 
             if (bgr1[1] <= 128) {
-                bgr3[1] = bgr1[1]*bgr2[1]/128;
+                bgr3[1] = MAX(0, bgr1[1]-(255-bgr1[1])*(255-2*bgr2[1])/2*bgr2[1]);
             } else {
-                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+                bgr3[1] = MIN(255, bgr1[1]+ bgr1[1]*(2*bgr2[1]-255)/2*(255-bgr2[1]));
             }
 
             if (bgr1[2] <= 128) {
-                bgr3[2] = bgr1[2]*bgr2[2]/128;
+                bgr3[2] = MAX(0, bgr1[2]-(255-bgr1[2])*(255-2*bgr2[2])/2*bgr2[2]);
             } else {
-                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+                bgr3[2] = MIN(255, bgr1[2]+ bgr1[2]*(2*bgr2[2]-255)/2*(255-bgr2[2]));
             }
 
             bgr3[3] = 255;
@@ -422,23 +421,11 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            if (bgr1[0] <= 128) {
-                bgr3[0] = bgr1[0]*bgr2[0]/128;
-            } else {
-                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
-            }
+            bgr3[0] = MIN(255, MAX(0, bgr1[0] + 2*bgr2[0] - 255));
 
-            if (bgr1[1] <= 128) {
-                bgr3[1] = bgr1[1]*bgr2[1]/128;
-            } else {
-                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
-            }
+            bgr3[1] = MIN(255, MAX(0, bgr1[1] + 2*bgr2[1] - 255));
 
-            if (bgr1[2] <= 128) {
-                bgr3[2] = bgr1[2]*bgr2[2]/128;
-            } else {
-                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
-            }
+            bgr3[2] = MIN(255, MAX(0, bgr1[2] + 2*bgr2[2] - 255));
 
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
@@ -457,23 +444,11 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            if (bgr1[0] <= 128) {
-                bgr3[0] = bgr1[0]*bgr2[0]/128;
-            } else {
-                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
-            }
+            bgr3[0] = MAX(0, MAX(2*bgr2[0]-255, MIN(bgr1[0], 2*bgr2[0])));
 
-            if (bgr1[1] <= 128) {
-                bgr3[1] = bgr1[1]*bgr2[1]/128;
-            } else {
-                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
-            }
+            bgr3[1] = MAX(0, MAX(2*bgr2[1]-255, MIN(bgr1[1], 2*bgr2[1])));
 
-            if (bgr1[2] <= 128) {
-                bgr3[2] = bgr1[2]*bgr2[2]/128;
-            } else {
-                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
-            }
+            bgr3[2] = MAX(0, MAX(2*bgr2[2]-255, MIN(bgr1[2], 2*bgr2[2])));
 
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
@@ -492,22 +467,22 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            if (bgr1[0] <= 128) {
-                bgr3[0] = bgr1[0]*bgr2[0]/128;
+            if (bgr1[0]+bgr2[0]>= 255) {
+                bgr3[0] = 255;
             } else {
-                bgr3[0] = MAX(0, 255 - (255-bgr1[0])*(255-bgr2[0])/128 );
+                bgr3[0] = 0;
             }
 
-            if (bgr1[1] <= 128) {
-                bgr3[1] = bgr1[1]*bgr2[1]/128;
+            if (bgr1[1]+bgr2[1]>= 255) {
+                bgr3[1] = 255;
             } else {
-                bgr3[1] = MAX(0, 255 - (255-bgr1[1])*(255-bgr2[1])/128 );
+                bgr3[1] = 0;
             }
 
-            if (bgr1[2] <= 128) {
-                bgr3[2] = bgr1[2]*bgr2[2]/128;
+            if (bgr1[2]+bgr2[2]>= 255) {
+                bgr3[2] = 255;
             } else {
-                bgr3[2] = MAX(0, 255 - (255-bgr1[2])*(255-bgr2[2])/128 );
+                bgr3[2] = 0;
             }
 
             bgr3[3] = 255;
