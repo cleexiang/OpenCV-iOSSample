@@ -13,10 +13,14 @@
 
 using namespace cv;
 
-@interface BlendViewController ()
+@interface BlendViewController () <UIPickerViewDataSource, UIPickerViewDelegate>
 
 @property (nonatomic) UIImageView *orgImageView;
 @property (nonatomic) UIImageView *mixedImageView;
+@property (nonatomic) NSArray *models;
+
+@property (nonatomic) Mat baseMat;
+@property (nonatomic) Mat blendMat;
 
 @end
 
@@ -24,26 +28,153 @@ using namespace cv;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.models = @[ @{@"变暗" : @"Darken"},
+                     @{@"正片叠底" : @"Multiply"},
+                     @{@"颜色加深" : @"ColorBurn"},
+                     @{@"线性加深" : @"LinearBurn"},
+                     @{@"变亮" : @"Lighten"},
+                     @{@"滤色" : @"Screen"},
+                     @{@"颜色减淡" : @"ColorDodge"},
+                     @{@"线性减淡" : @"LinearDodge"},
+                     @{@"叠加" : @"Overlay"},
+                     @{@"柔光 " : @"SoftLight"},
+                     @{@"强光" : @"HardLight"},
+                     @{@"亮光" : @"VividLight"},
+                     @{@"线性光" : @"LinearLight"},
+                     @{@"点光" : @"PinLight"},
+                     @{@"实色混合" : @"HardMix"},
+                     @{@"差值" : @"Difference"},
+                     @{@"排除" : @"Exclusion"}];
+
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"选择模式"
+                                                                              style:UIBarButtonItemStylePlain
+                                                                             target:self
+                                                                             action:@selector(itemAction)];
+
     self.view.backgroundColor = [UIColor whiteColor];
 
     UIImage *orgImg = [UIImage imageNamed:@"demo.jpg"];
-    self.orgImageView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 100, orgImg.size.width, orgImg.size.height)];
+    self.orgImageView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 80, orgImg.size.width, orgImg.size.height)];
     self.orgImageView.image = orgImg;
     [self.view addSubview:self.orgImageView];
 
-    self.mixedImageView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 400, orgImg.size.width, orgImg.size.height)];
+    self.mixedImageView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 320, orgImg.size.width, orgImg.size.height)];
     [self.view addSubview:self.mixedImageView];
 
     Mat baseMat = [UIImage cvMatFromUIImage:orgImg];
     orgImg = [UIImage imageNamed:@"blend.jpg"];
+    self.baseMat = baseMat;
     Mat blendMat = [UIImage cvMatFromUIImage:orgImg];
+    self.blendMat = blendMat;
 
-    Mat mixMat = [self HardMixWithBaseImage:baseMat blend:blendMat];
+    UIPickerView *pickerView = [[UIPickerView alloc] initWithFrame:CGRectZero];
+    pickerView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:pickerView];
+    [pickerView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(pickerView.superview.mas_bottom).with.offset(0);
+        make.left.equalTo(pickerView.superview.mas_left).with.offset(0);
+        make.right.equalTo(pickerView.superview.mas_right).with.offset(0);
+        make.height.mas_equalTo(150);
+    }];
+    pickerView.dataSource = self;
+    pickerView.delegate = self;
+}
+
+- (void)itemAction {
+    UIPickerView *pickerView = [[UIPickerView alloc] initWithFrame:CGRectZero];
+    pickerView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:pickerView];
+    [pickerView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(pickerView.superview.mas_bottom).with.offset(0);
+        make.left.equalTo(pickerView.superview.mas_left).with.offset(0);
+        make.right.equalTo(pickerView.superview.mas_right).with.offset(0);
+        make.height.mas_equalTo(150);
+    }];
+    pickerView.dataSource = self;
+    pickerView.delegate = self;
+}
+
+#pragma mark - UIPickerViewDataSource 
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView
+{
+    return 1;
+}
+
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component
+{
+    return self.models.count;
+}
+
+#pragma mark - UIPickerViewDelegate
+- (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    NSDictionary *dic = [self.models objectAtIndex:row];
+    return [[dic allKeys] firstObject];
+}
+
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
+{
+    Mat mixMat;
+    switch (row)
+    {
+        case 0:
+            mixMat = [self DarkenWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 1:
+            mixMat = [self MultiplyWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 2:
+            mixMat = [self ColorBurnWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 3:
+            mixMat = [self LinearBurnWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 4:
+            mixMat = [self LightenWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 5:
+            mixMat = [self ScreenWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 6:
+            mixMat = [self ColorDodgeWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 7:
+            mixMat = [self LinearDodgeWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 8:
+            mixMat = [self OverlayWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 9:
+            mixMat = [self SoftLightWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 10:
+            mixMat = [self HardLightWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 11:
+            mixMat = [self VividLightWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 12:
+            mixMat = [self LinearLightWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 13:
+            mixMat = [self PinLightWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 14:
+            mixMat = [self HardMixWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 15:
+            mixMat = [self DifferenceWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        case 16:
+            mixMat = [self ExclusionWithBaseImage:self.baseMat blend:self.blendMat];
+            break;
+        default:
+            break;
+    }
     self.mixedImageView.image = [UIImage UIImageFromCVMat:mixMat];
 }
 
 //变暗
-- (Mat)darkenWithBaseImage:(Mat)base blend:(Mat)blend
+- (Mat)DarkenWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix = Mat(base.rows, base.cols, CV_8UC4);
 
@@ -78,7 +209,7 @@ using namespace cv;
 }
 
 //正片叠底
-- (Mat)multiplyWithBaseImage:(Mat)base blend:(Mat)blend
+- (Mat)MultiplyWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix = Mat(base.rows, base.cols, CV_8UC4);
     for (int i = 0; i < base.rows; i++) {
@@ -97,7 +228,7 @@ using namespace cv;
 }
 
 //颜色加深
-- (Mat)colorBurnWithBaseImage:(Mat)base blend:(Mat)blend
+- (Mat)ColorBurnWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix(base.rows, base.cols, CV_8UC4);
     for (int i = 0; i < base.rows; i++) {
@@ -142,7 +273,7 @@ using namespace cv;
 }
 
 //线性加深
-- (Mat)linearBurnWithBaseImage:(Mat)base blend:(Mat)blend
+- (Mat)LinearBurnWithBaseImage:(Mat)base blend:(Mat)blend
 {
     Mat mix(base.rows, base.cols, CV_8UC4);
     for (int i = 0; i < base.rows; i++) {
@@ -492,6 +623,51 @@ using namespace cv;
     return mix;
 }
 
+//差值
+- (Mat)DifferenceWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = abs(bgr1[0]-bgr2[0]);
+
+            bgr3[1] = abs(bgr1[1]-bgr2[1]);
+
+            bgr3[2] = abs(bgr1[2]-bgr2[2]);
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
+
+//Exclusion
+- (Mat)ExclusionWithBaseImage:(Mat)base blend:(Mat)blend
+{
+    Mat mix(base.rows, base.cols, CV_8UC4);
+    for (int i = 0; i < base.rows; i++) {
+        for (int j = 0; j < base.cols; j++) {
+            Vec4b bgr1 = base.at<Vec4b>(i, j);
+            Vec4b bgr2 = blend.at<Vec4b>(i, j);
+            Vec4b bgr3 = mix.at<Vec4b>(i, j);
+
+            bgr3[0] = MIN(255, MAX(0, bgr1[0] + bgr2[0] - bgr1[0]*bgr2[0]/128));
+
+            bgr3[1] = MIN(255, MAX(0, bgr1[1] + bgr2[1] - bgr1[1]*bgr2[1]/128));
+
+            bgr3[2] = MIN(255, MAX(0, bgr1[2] + bgr2[2] - bgr1[2]*bgr2[2]/128));
+
+            bgr3[3] = 255;
+            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
+        }
+    }
+    return mix;
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
