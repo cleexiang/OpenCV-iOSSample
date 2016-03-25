@@ -456,20 +456,6 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-//            if (bgr2[0] <= 128) {
-//                bgr3[0] = bgr1[0]*bgr2[0]/128 + (bgr1[0]/255 * bgr1[0]/255)*(255-2*bgr2[0]);
-//                bgr3[1] = bgr1[1]*bgr2[1]/128 + (bgr1[1]/255 * bgr1[1]/255)*(255-2*bgr2[1]);
-//                bgr3[2] = bgr1[2]*bgr2[2]/128 + (bgr1[2]/255 * bgr1[2]/255)*(255-2*bgr2[2]);
-//            } else {
-//                bgr3[0] = bgr1[0]*(255-bgr2[0])/128 + sqrt(bgr1[0]/255)*(2*bgr2[0]-255);
-//                bgr3[1] = bgr1[1]*(255-bgr2[1])/128 + sqrt(bgr1[1]/255)*(2*bgr2[1]-255);
-//                bgr3[2] = bgr1[2]*(255-bgr2[2])/128 + sqrt(bgr1[2]/255)*(2*bgr2[2]-255);
-//            }
-//
-//            bgr3[3] = 255;
-//            mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
-
-
             CGFloat r1 = (CGFloat)bgr1[0];
             CGFloat r2 = (CGFloat)bgr2[0];
 
@@ -479,20 +465,37 @@ using namespace cv;
             CGFloat b1 = (CGFloat)bgr1[2];
             CGFloat b2 = (CGFloat)bgr2[2];
 
-            CGFloat gray = (int)((r2+g2+b2)/3);
-//            NSLog(@"%f", gray);
-
-            if (gray < 128)
+            if (bgr2[0] < 128)
             {
-                bgr3[0] = r1 * r2 /128 + (r1/255 * r1/255) * (255 - 2 * r2);
-                bgr3[1] = g1 * g2 /128 + (g1/255 * g1/255) * (255 - 2 * g2);
-                bgr3[2] = b1 * b2 /128 + (b1/255 * b1/255) * (255 - 2 * b2);
+                CGFloat r = r1 * r2 /128 + (r1/255 * r1/255) * (255 - 2 * r2);
+                bgr3[0] = floor(r);
             }
             else
             {
-                bgr3[0] = r1 * (255 - r2)/128 + sqrt(r1/255) * (2 * r2 - 255);
-                bgr3[1] = g1 * (255 - g2)/128 + sqrt(g1/255) * (2 * g2 - 255);
-                bgr3[2] = b1 * (255 - b2)/128 + sqrt(b1/255) * (2 * b2 - 255);
+                CGFloat r = r1 * (255 - r2)/128 + sqrt(r1/255) * (2 * r2 - 255);
+                bgr3[0] = floor(r);
+            }
+
+            if (bgr2[1] < 128)
+            {
+                CGFloat g = g1 * g2 /128 + (g1/255 * g1/255) * (255 - 2 * g2);
+                bgr3[1] = floor(g);
+            }
+            else
+            {
+                CGFloat g = g1 * (255 - g2)/128 + sqrt(g1/255) * (2 * g2 - 255);
+                bgr3[1] = floor(g);
+            }
+
+            if (bgr2[2] < 128)
+            {
+                CGFloat b = b1 * b2 /128 + (b1/255 * b1/255) * (255 - 2 * b2);
+                bgr3[2] = floor(b);
+            }
+            else
+            {
+                CGFloat b = b1 * (255 - b2)/128 + sqrt(b1/255) * (2 * b2 - 255);
+                bgr3[2] = floor(b);
             }
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
@@ -538,6 +541,7 @@ using namespace cv;
 //亮光
 - (Mat)VividLightWithBaseImage:(Mat)base blend:(Mat)blend
 {
+
     Mat mix(base.rows, base.cols, CV_8UC4);
     for (int i = 0; i < base.rows; i++) {
         for (int j = 0; j < base.cols; j++) {
@@ -545,23 +549,89 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            CGFloat gray = (bgr2[0] + bgr2[1] + bgr2[2])/3;
-            if (gray <= 128) {
-                bgr3[0] = MAX(0, bgr1[0]-(255-bgr1[0])*(255-2*bgr2[0])/2*bgr2[0]);
-            } else {
-                bgr3[0] = MIN(255, bgr1[0]+ bgr1[0]*(2*bgr2[0]-255)/2*(255-bgr2[0]));
+
+            if (bgr2[0] < 128)
+            {
+                if (bgr2[0] == 0)
+                {
+                    CGFloat r = 2*bgr2[0];
+                    bgr3[0] = floor(r);
+                }
+                else
+                {
+                    CGFloat r = MAX(0, (255-((255-bgr1[0]) << 8) /(2*bgr2[0])));
+                    bgr3[0] = floor(r);
+                }
+            }
+            else
+            {
+                if (2*(bgr2[0]-128) == 255)
+                {
+                    CGFloat r = 2*(bgr2[0]-128);
+                    bgr3[0] = r;
+                }
+                else
+                {
+                    CGFloat r = MIN(255, (bgr1[0] << 8) / (255- 2*(bgr2[0] - 128)));
+                    bgr3[0] = r;
+                }
             }
 
-            if (gray <= 128) {
-                bgr3[1] = MAX(0, bgr1[1]-(255-bgr1[1])*(255-2*bgr2[1])/2*bgr2[1]);
-            } else {
-                bgr3[1] = MIN(255, bgr1[1]+ bgr1[1]*(2*bgr2[1]-255)/2*(255-bgr2[1]));
+
+
+            if (bgr2[1] < 128)
+            {
+                if (bgr2[1] == 0)
+                {
+                    CGFloat g = 2*bgr2[1];
+                    bgr3[1] = floor(g);
+                }
+                else
+                {
+                    CGFloat g = MAX(0, (255-((255-bgr1[1]) << 8) /(2*bgr2[1])));
+                    bgr3[1] = floor(g);
+                }
+            }
+            else
+            {
+                if (2*(bgr2[1]-128) == 255)
+                {
+                    CGFloat g = 2*(bgr2[1]-128);
+                    bgr3[1] = g;
+                }
+                else
+                {
+                    CGFloat g = MIN(255, (bgr1[1] << 8) / (255- 2*(bgr2[1] - 128)));
+                    bgr3[1] = g;
+                }
             }
 
-            if (gray <= 128) {
-                bgr3[2] = MAX(0, bgr1[2]-(255-bgr1[2])*(255-2*bgr2[2])/2*bgr2[2]);
-            } else {
-                bgr3[2] = MIN(255, bgr1[2]+ bgr1[2]*(2*bgr2[2]-255)/2*(255-bgr2[2]));
+
+            if (bgr2[2] < 128)
+            {
+                if (bgr2[2] == 0)
+                {
+                    CGFloat b = 2*bgr2[2];
+                    bgr3[2] = floor(b);
+                }
+                else
+                {
+                    CGFloat b = MAX(0, (255-((255-bgr1[2]) << 8) /(2*bgr2[2])));
+                    bgr3[2] = floor(b);
+                }
+            }
+            else
+            {
+                if (2*(bgr2[2]-128) == 255)
+                {
+                    CGFloat b = 2*(bgr2[2]-128);
+                    bgr3[2] = b;
+                }
+                else
+                {
+                    CGFloat b = MIN(255, (bgr1[2] << 8) / (255- 2*(bgr2[2] - 128)));
+                    bgr3[2] = b;
+                }
             }
 
             bgr3[3] = 255;
@@ -731,22 +801,30 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
+            if (overlay.a == 0.0 || ((base.r / overlay.r) > (base.a / overlay.a)))
+                ra = overlay.a * base.a + overlay.r * (1.0 - base.a) + base.r * (1.0 - overlay.a);
+            else
+                ra = (base.r * overlay.a * overlay.a) / overlay.r + overlay.r * (1.0 - base.a) + base.r * (1.0 - overlay.a);
+
             if (bgr2[0] == 0) {
-                bgr3[0] = 0;
+                CGFloat r = 
             } else {
-                bgr3[0] = MAX(0, MIN(255, bgr1[0]*255/bgr2[0]));
+                CGFloat r = bgr1[0]*255/bgr2[0];
+                bgr3[0] = floor(r);
             }
 
             if (bgr2[1] == 0) {
                 bgr3[1] = 0;
             } else {
-                bgr3[1] = MAX(0, MIN(255, bgr1[1]*255/bgr2[1]));
+                CGFloat g = bgr1[1]*255/bgr2[1];
+                bgr3[1] = floor(g);
             }
 
             if (bgr2[2] == 0) {
                 bgr3[2] = 0;
             } else {
-                bgr3[2] = MAX(0, MIN(255, bgr1[2]*255/bgr2[2]));
+                CGFloat b = bgr1[2]*255/bgr2[2];
+                bgr3[2] = floor(b);
             }
 
             bgr3[3] = 255;
