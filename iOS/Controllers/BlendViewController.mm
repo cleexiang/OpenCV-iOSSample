@@ -801,37 +801,31 @@ using namespace cv;
             Vec4b bgr2 = blend.at<Vec4b>(i, j);
             Vec4b bgr3 = mix.at<Vec4b>(i, j);
 
-            if (overlay.a == 0.0 || ((base.r / overlay.r) > (base.a / overlay.a)))
-                ra = overlay.a * base.a + overlay.r * (1.0 - base.a) + base.r * (1.0 - overlay.a);
-            else
-                ra = (base.r * overlay.a * overlay.a) / overlay.r + overlay.r * (1.0 - base.a) + base.r * (1.0 - overlay.a);
+            
+            CGFloat r = bgr1[0]*256/(bgr2[0]+1);
+            bgr3[0] = floor(r);
 
-            if (bgr2[0] == 0) {
-                CGFloat r = 
-            } else {
-                CGFloat r = bgr1[0]*255/bgr2[0];
-                bgr3[0] = floor(r);
-            }
+            CGFloat g = bgr1[1]*256/(bgr2[1]+1);
+            bgr3[1] = floor(g);
 
-            if (bgr2[1] == 0) {
-                bgr3[1] = 0;
-            } else {
-                CGFloat g = bgr1[1]*255/bgr2[1];
-                bgr3[1] = floor(g);
-            }
+            CGFloat b = bgr1[2]*256/(bgr2[2]+1);
+            bgr3[2] = floor(b);
 
-            if (bgr2[2] == 0) {
-                bgr3[2] = 0;
-            } else {
-                CGFloat b = bgr1[2]*255/bgr2[2];
-                bgr3[2] = floor(b);
-            }
+            [self check:bgr3];
 
             bgr3[3] = 255;
             mix.at<Vec4b>(cv::Point(j, i)) = bgr3;
         }
     }
     return mix;
+}
+
+- (void)check:(Vec4b)v
+{
+    if (v[0] < 0 || v[0] > 255 || v[1] < 0 || v[1] > 255 || v[2] < 0 || v[2] > 255)
+    {
+        NSLog(@"+++++++");
+    }
 }
 
 
